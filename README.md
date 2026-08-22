@@ -9,6 +9,15 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
+The Vercel frontend uses Next.js and React. Install Node.js 20+ locally, then run:
+
+```powershell
+npm install
+npm run dev
+```
+
+The Next.js dashboard is served at `http://localhost:3000` and calls the existing `/api` function in deployment. The Python Streamlit dashboard remains available through `app.py`.
+
 ## Test
 
 ```powershell
