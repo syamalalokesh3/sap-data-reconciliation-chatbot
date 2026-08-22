@@ -15,6 +15,17 @@ streamlit run app.py
 python -m pytest -q
 ```
 
+## Deploy
+
+The complete dashboard is a Streamlit application and can be deployed with Streamlit Community Cloud using `app.py`. Vercel does not host Streamlit processes, so this repository also includes a Vercel-compatible read-only API:
+
+```text
+GET  /api
+POST /api   {"question": "Which POs have unmatched receipts over $1,000?"}
+```
+
+Connect the Vercel API to a separate frontend, or use Streamlit Community Cloud for the full dashboard experience.
+
 ## Structure
 
 - `app.py`: Streamlit chat interface
