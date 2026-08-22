@@ -2,9 +2,11 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from ai_translator import translate_with_ai
 from nlp_parser import QueryIntent, parse_question
 from reconciliation import reconcile
 from analytics import material_summary, vendor_summary
+from sql_validator import validate_read_only_sql
 
 
 @dataclass
@@ -15,6 +17,10 @@ class QueryResult:
     sql: str = ""
     verification: str = "? CLARIFICATION REQUIRED"
 
+    def __post_init__(self) -> None:
+        if self.sql:
+            self.sql = validate_read_only_sql(self.sql)
+
 
 def execute_question(question: str, po: pd.DataFrame, receipts: pd.DataFrame, previous: pd.DataFrame | None = None) -> QueryResult:
     intent = parse_question(question)
@@ -22,7 +28,10 @@ def execute_question(question: str, po: pd.DataFrame, receipts: pd.DataFrame, pr
         if "those" in question.lower() and previous is not None and not previous.empty:
             intent = QueryIntent("reconciliation", threshold=intent.threshold)
         else:
-            return QueryResult(intent, pd.DataFrame(), verification="? CLARIFICATION REQUIRED")
+            ai_intent = translate_with_ai(question) if intent.startswith("I can currently") else None
+            if ai_intent is None:
+                return QueryResult(intent, pd.DataFrame(), verification="? CLARIFICATION REQUIRED")
+            intent = ai_intent
     data = reconcile(po, receipts)
     evidence = data
     sql = "SELECT * FROM PO_DATA p LEFT JOIN GR_IR_DATA g ON p.PO_NUMBER = g.PO_NUMBER AND p.PO_ITEM = g.PO_ITEM;"

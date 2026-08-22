@@ -17,14 +17,23 @@ python -m pytest -q
 
 ## Deploy
 
-The complete dashboard is a Streamlit application and can be deployed with Streamlit Community Cloud using `app.py`. Vercel does not host Streamlit processes, so this repository also includes a Vercel-compatible read-only API:
+The complete dashboard is a Streamlit application and can be deployed with Streamlit Community Cloud using `app.py`. This repository also includes a Vercel-compatible browser frontend at `/` and read-only API:
 
 ```text
 GET  /api
 POST /api   {"question": "Which POs have unmatched receipts over $1,000?"}
 ```
 
-Connect the Vercel API to a separate frontend, or use Streamlit Community Cloud for the full dashboard experience.
+Vercel serves `index.html` at the root and routes `/api` to the Python function. The Streamlit app remains available for the full native dashboard experience on Streamlit Community Cloud.
+
+## Query pipeline
+
+```text
+Rule-based NLP -> optional AI intent translation -> QueryIntent validation
+-> read-only SQL validation -> local Pandas/database execution -> grounded answer
+```
+
+Rule-based parsing is always attempted first. To enable the optional OpenAI-compatible translation fallback, configure `AI_API_KEY` and optionally `AI_API_URL` and `AI_MODEL`. The AI service proposes an intent only; it cannot execute SQL or generate the final answer. `sql_validator.py` permits only one `SELECT`/`WITH` statement against `PO_DATA` and `GR_IR_DATA` and blocks destructive operations.
 
 ## Structure
 

@@ -5,6 +5,7 @@ from query_engine import execute_question
 from analytics import data_quality, kpis
 from reconciliation import reconcile
 from reports import csv_bytes, excel_bytes
+from sql_validator import validate_read_only_sql
 
 
 PO, RECEIPTS = load_data(Path(__file__).parents[1] / "data")
@@ -62,3 +63,15 @@ def test_quality_kpis_analytics_exports_and_follow_up():
     assert set(follow_up.evidence["PO_NUMBER"]) == {"4500001002", "4500001005"}
     assert csv_bytes(data).startswith(b"PO_NUMBER")
     assert excel_bytes(data)
+
+
+def test_sql_safety_allows_reads_and_blocks_writes():
+    query = validate_read_only_sql("SELECT PO_NUMBER FROM PO_DATA;")
+    assert query == "SELECT PO_NUMBER FROM PO_DATA"
+    for unsafe in ("DROP TABLE PO_DATA", "DELETE FROM PO_DATA", "SELECT * FROM USERS"):
+        try:
+            validate_read_only_sql(unsafe)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"Unsafe SQL was accepted: {unsafe}")
