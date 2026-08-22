@@ -1,12 +1,16 @@
 import json
+import sys
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from database import load_data
 from query_engine import evidence_columns, execute_question
 
 
-ROOT = Path(__file__).resolve().parents[1]
 PO, RECEIPTS = load_data(ROOT / "data")
 
 
